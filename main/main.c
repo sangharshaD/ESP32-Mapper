@@ -1,53 +1,31 @@
+#include "peripherals.h"
 
-#include <stdio.h>
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/gpio.h"
-#include "xtensa/core-macros.h"
-#include "esp_rom_sys.h"
-#include "esp_log.h"
+// STEPPER PINS
+#define STP_IN1 GPIO_NUM_18
+#define STP_IN2 GPIO_NUM_19
+#define STP_IN3 GPIO_NUM_21
+#define STP_IN4 GPIO_NUM_22
+
+// ULTRASONIC SENSOR PINS
+#define USS_ECHO GPIO_NUM_17
+#define USS_TRIG GPIO_NUM_16
+ 
+void setup(void) {
+    gpio_output_enable(STP_IN4); gpio_set_level(STP_IN4, 0);
+    gpio_output_enable(STP_IN3); gpio_set_level(STP_IN3, 0);
+    gpio_output_enable(STP_IN2); gpio_set_level(STP_IN2, 0);
+    gpio_output_enable(STP_IN1); gpio_set_level(STP_IN1, 0);
+    gpio_input_enable(USS_ECHO); // ECHO PIN INPUT
+    gpio_output_enable(USS_TRIG); // TRIG PIN OUTPUT
+    gpio_set_level(USS_TRIG, 0); // TRIG PIN LOW
+}
 
 void app_main(void)
 {
-    gpio_input_enable(GPIO_NUM_17); // Pin 17 is input
-    gpio_output_enable(GPIO_NUM_16); // Pin 16 is output
-
-    bool got_echo = false;
+    setup(); 
 
     while (1) {
         // Rotate stepper motor to obtain boundaries from sensor
-            // Send a 10 microsecond signal to ultrasonic sensor
-            gpio_set_level(GPIO_NUM_16, 1); // Set pin 16 HIGH
-            esp_rom_delay_us(10); // Delay 10 microseconds to prolong output
-            gpio_set_level(GPIO_NUM_16, 0); // Set pin 16 LOW
-
-            // Check for input in pin 17 -- if HIGH, then the sensor has started
-            while (gpio_get_level(GPIO_NUM_17) != 1) { printf("-"); }
-
-            uint32_t init_CPU_CYCLES;
-            // If ECHO low after 38 milliseconds, no signal found
-            if (gpio_get_level(GPIO_NUM_17) == 1) {
-                got_echo = true;
-                init_CPU_CYCLES = xthal_get_ccount(); // ECHO started
-                while (gpio_get_level(GPIO_NUM_17) == 1) {
-                    if ((xthal_get_ccount() - init_CPU_CYCLES) > 9120000) { // 38 ms max echo duration
-                        printf("NO_SIGNAL");
-                        got_echo = false;
-                        break;
-                    }
-                }
-            }
-
-            if (got_echo) {
-                // 58 centimeters per microsecond
-                // uint32_t range_cm = 58 * (xthal_get_ccount()-init_CPU_CYCLES) / 240;
-                float time_uS = (xthal_get_ccount() - init_CPU_CYCLES) / 240.0;
-                uint32_t distance_cm = (time_uS * 0.0343) / 2;
-                printf("%ld", distance_cm);
-            } else {
-                printf("NO_ECHO");
-            }
-            vTaskDelay(pdMS_TO_TICKS(100)); // Delay for testing purposes
+        STEPPER_PULSE(STP_IN1, STP_IN2, STP_IN3, STP_IN4);
     }
 }
