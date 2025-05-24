@@ -2,5 +2,8 @@
   "C_Cpp.intelliSenseEngine": "default",
   "idf.espIdfPath": "/Users/kiks/esp/esp-idf",
   "idf.toolsPath": "/Users/kiks/.espressif",
-  "idf.pythonInstallPath": "/opt/homebrew/bin/python3"
+  "idf.pythonInstallPath": "/opt/homebrew/bin/python3",
+  "files.associations": {
+    "*.inc": "c"
+  }
 }
