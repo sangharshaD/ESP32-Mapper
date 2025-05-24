@@ -7,8 +7,7 @@
 
 void app_main(void)
 {
-    
-    while (1) {
-        
-    }
+    gpio_output_enable(GPIO_NUM_18);
+    gpio_set_level(GPIO_NUM_18, 1);
+    printf("Helo");
 }
